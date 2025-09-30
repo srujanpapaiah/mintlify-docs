@@ -5,10 +5,7 @@
   "colors": {
     "primary": "#4F46E5",
     "light": "#6366F1",
-    "dark": "#4338CA",
-    "background": {
-      "dark": "#0F172A"
-    }
+    "dark": "#4338CA"
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -127,17 +124,7 @@
       "x": "https://x.com/tryintra",
       "github": "https://github.com/intra-app",
       "linkedin": "https://linkedin.com/company/intra"
-    },
-    "links": [
-      {
-        "label": "Privacy Policy",
-        "href": "https://tryintra.app/privacy"
-      },
-      {
-        "label": "Terms of Service",
-        "href": "https://tryintra.app/terms"
-      }
-    ]
+    }
   },
   "analytics": {
     "plausible": {
