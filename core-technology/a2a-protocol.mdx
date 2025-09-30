@@ -274,59 +274,249 @@ metrics = obs.get_metrics(
 )
 ```
 
-## Protocol Specifications
+## Real-World Applications
 
-### Agent Card Schema
+### Multi-Agent Research & Development
 
-<AccordionGroup>
-  <Accordion title="Required Fields" icon="asterisk">
-    - `name`: Unique agent identifier
-    - `version`: Semantic version (e.g., 1.0.0)
-    - `provider`: Organization information
-    - `capabilities`: Skills and modalities
-    - `interfaces`: Communication endpoints
-  </Accordion>
-  
-  <Accordion title="Optional Fields" icon="circle">
-    - `description`: Human-readable description
-    - `icon`: Agent icon URL
-    - `tags`: Searchable tags
-    - `pricing`: Cost information
-    - `rateLimit`: Usage limits
-  </Accordion>
-  
-  <Accordion title="Security Fields" icon="shield">
-    - `authentication`: Auth requirements
-    - `authorization`: Permission scopes
-    - `signature`: Cryptographic signature
-    - `publicKey`: Verification key
-  </Accordion>
-</AccordionGroup>
+Coordinate research agents, code generation agents, and testing agents to automate software development workflows.
 
-### Task Schema
+```python
+from intra import Workflow, Registry
 
-```typescript
-interface Task {
-  taskId: string;
-  agentId: string;
-  status: 'pending' | 'in-progress' | 'completed' | 'failed';
-  input: {
-    skill: string;
-    parameters: Record<string, any>;
-  };
-  output?: Record<string, any>;
-  error?: {
-    code: string;
-    message: string;
-    details?: Record<string, any>;
-  };
-  metadata: {
-    createdAt: string;
-    updatedAt: string;
-    estimatedCompletion?: string;
-    cost?: number;
-  };
-}
+# Discover agents
+registry = Registry()
+researcher = registry.find("research-agent")
+analyzer = registry.find("code-analyzer")
+generator = registry.find("code-generator")
+tester = registry.find("test-agent")
+
+# Create workflow
+workflow = Workflow(name="automated-development")
+
+# Research phase
+research_task = workflow.add_task(
+    agent=researcher,
+    skill="gather_requirements",
+    input={"topic": "payment processing API"}
+)
+
+# Analysis phase
+analysis_task = workflow.add_task(
+    agent=analyzer,
+    skill="analyze_requirements",
+    input={"requirements": research_task.output},
+    depends_on=[research_task]
+)
+
+# Generation phase
+code_task = workflow.add_task(
+    agent=generator,
+    skill="generate_code",
+    input={"spec": analysis_task.output},
+    depends_on=[analysis_task]
+)
+
+# Testing phase
+test_task = workflow.add_task(
+    agent=tester,
+    skill="run_tests",
+    input={"code": code_task.output},
+    depends_on=[code_task]
+)
+
+# Execute
+result = workflow.execute()
+```
+
+### Enterprise Automation
+
+Deploy domain-specific agents for customer support, data analysis, and business intelligence.
+
+```python
+from intra import Agent, Registry
+
+# Support agent with multiple skills
+support_agent = Agent(
+    name="customer-support",
+    capabilities=["support", "nlp"]
+)
+
+@support_agent.skill(name="handle_query")
+async def handle_query(query: str, context: dict):
+    # Classify query
+    category = classify(query)
+    
+    if category == "billing":
+        # Route to billing specialist agent
+        billing_agent = registry.find("billing-specialist")
+        return await billing_agent.execute(query)
+    
+    elif category == "technical":
+        # Route to technical support
+        tech_agent = registry.find("tech-support")
+        return await tech_agent.execute(query)
+    
+    else:
+        # Handle general queries
+        return generate_response(query, context)
+
+support_agent.register()
+```
+
+### E-commerce & Transactions
+
+Use AP2 to enable agents to handle purchases and payments with user consent.
+
+```python
+from intra import Agent, PaymentClient
+
+shopping_agent = Agent(name="shopping-assistant")
+payment = PaymentClient()
+
+@shopping_agent.skill(name="purchase_product")
+async def purchase_product(
+    product_id: str,
+    quantity: int,
+    user_id: str
+):
+    # Get product details
+    product = await get_product(product_id)
+    total = product.price * quantity
+    
+    # Create payment intent
+    intent = payment.create_intent(
+        amount=total,
+        currency="USD",
+        description=f"{quantity}x {product.name}"
+    )
+    
+    # Request user consent
+    consent = await payment.request_consent(
+        intent_id=intent.id,
+        user_id=user_id
+    )
+    
+    if consent.approved:
+        # Process payment
+        result = await payment.process(intent.id)
+        
+        # Fulfill order
+        order = await create_order(
+            user_id=user_id,
+            product_id=product_id,
+            quantity=quantity,
+            transaction_id=result.transaction_id
+        )
+        
+        return {
+            "status": "success",
+            "order_id": order.id,
+            "receipt_url": result.receipt_url
+        }
+```
+
+### Content Generation Pipeline
+
+Automate content creation with specialized agents:
+
+```python
+# Content pipeline
+content_workflow = Workflow(name="content-generation")
+
+# Research
+research = content_workflow.add_task(
+    agent="research-agent",
+    skill="gather_information",
+    input={
+        "topic": "AI trends 2025",
+        "sources": ["arxiv", "tech_blogs", "news"]
+    }
+)
+
+# Outline
+outline = content_workflow.add_task(
+    agent="content-planner",
+    skill="create_outline",
+    input={"research": research.output},
+    depends_on=[research]
+)
+
+# Writing
+draft = content_workflow.add_task(
+    agent="content-writer",
+    skill="write_article",
+    input={
+        "outline": outline.output,
+        "tone": "professional",
+        "length": 2000
+    },
+    depends_on=[outline]
+)
+
+# Final editing
+final = content_workflow.add_task(
+    agent="editor-agent",
+    skill="edit_and_polish",
+    input={"draft": draft.output},
+    depends_on=[draft]
+)
+
+result = content_workflow.execute()
+```
+
+### Data Processing & Analysis
+
+Orchestrate ETL pipelines with specialized processing agents:
+
+```python
+# ETL Pipeline
+data_pipeline = Workflow(name="etl-pipeline")
+
+# Extract
+extract = data_pipeline.add_task(
+    agent="data-extractor",
+    skill="extract",
+    input={
+        "sources": [
+            {"type": "api", "url": "https://api.example.com/data"},
+            {"type": "database", "connection": "postgresql://..."},
+            {"type": "file", "path": "s3://bucket/data.csv"}
+        ]
+    }
+)
+
+# Transform
+transform = data_pipeline.add_task(
+    agent="data-transformer",
+    skill="transform",
+    input={
+        "data": extract.output,
+        "transformations": ["clean_nulls", "normalize_dates", "deduplicate"]
+    },
+    depends_on=[extract]
+)
+
+# Analyze
+analyze = data_pipeline.add_task(
+    agent="data-analyzer",
+    skill="analyze",
+    input={"data": transform.output},
+    depends_on=[transform]
+)
+
+# Load
+load = data_pipeline.add_task(
+    agent="data-loader",
+    skill="load",
+    input={
+        "data": transform.output,
+        "destination": "warehouse",
+        "table": "processed_data"
+    },
+    depends_on=[transform, analyze]
+)
+
+result = data_pipeline.execute()
 ```
 
 ## Benefits of A2A
@@ -347,37 +537,57 @@ interface Task {
   <Card title="Scalability" icon="chart-line">
     Build complex multi-agent systems with confidence
   </Card>
+  
+  <Card title="Enterprise Ready" icon="building">
+    Security, observability, and compliance built-in
+  </Card>
+  
+  <Card title="Cost Effective" icon="dollar-sign">
+    Pay only for what you use with flexible pricing
+  </Card>
 </CardGroup>
 
-## Real-World Applications
+## Getting Started with Intra
 
-### Multi-Agent Research Workflow
+Intra makes it easy to build on the A2A protocol with our comprehensive platform:
 
-```python
-# Discover agents for research workflow
-researcher = registry.find("research-agent")
-analyzer = registry.find("data-analysis")
-writer = registry.find("content-generator")
+### Free Tier
+Start building immediately with:
+- 10k tokens per day
+- Access to 25+ LLMs
+- Up to 3 agents
+- 100 API requests/day
 
-# Orchestrate workflow
-research_data = researcher.execute(topic="AI trends")
-analysis = analyzer.execute(data=research_data)
-report = writer.execute(insights=analysis)
-```
+### Production Plans
+Scale to production with our Plus ($20/month) and Max ($200/month) plans, or use Pay As You Go for maximum flexibility.
 
-### Customer Support Automation
+<Card title="View Full Pricing" icon="tag" href="https://tryintra.app/pricing">
+  Explore all plans and features
+</Card>
 
-```python
-# Route customer queries to specialized agents
-support_agents = registry.search(
-    capabilities=["customer-support"],
-    tags=["billing", "technical", "general"]
-)
+## Platform Roadmap
 
-# Intelligent routing based on query
-agent = route_to_best_agent(query, support_agents)
-response = agent.handle(query)
-```
+### ✅ Phase 1: Foundation (Complete)
+- Agent registration wizard
+- Domain verification
+- Basic registry search
+- A2A protocol implementation
+
+### 🚧 Phase 2: Registry & Discovery (In Progress)
+- Enhanced search with faceted filters
+- Preflight testing system
+- JSON editor for Agent Cards
+- Backend API implementation
+
+### 📋 Phase 3-6: Coming Soon
+- Task orchestration and streaming
+- Advanced observability with OpenTelemetry
+- AP2 payment integration
+- Enhanced developer tools (SDKs, CLI)
+
+<Card title="View Full Roadmap" icon="map" href="https://tryintra.app/roadmap">
+  See our complete product roadmap
+</Card>
 
 ## Next Steps
 

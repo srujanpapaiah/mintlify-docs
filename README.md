@@ -25,9 +25,6 @@ This repository contains the complete documentation for Intra, built with [Mintl
 ├── platform/
 │   ├── features.mdx              # Platform features
 │   └── architecture.mdx          # System architecture
-├── use-cases.mdx                 # Real-world applications
-├── pricing.mdx                   # Pricing tiers
-├── roadmap.mdx                   # Product roadmap
 └── api-reference/
     ├── introduction.mdx          # API overview
     └── endpoint/                 # API endpoints
@@ -74,15 +71,10 @@ The documentation will be available at `http://localhost:3000`.
 - **[Quick Start](quickstart.mdx)** - Get your first agent running in minutes
 
 ### Core Concepts
-- **[A2A Protocol](core-technology/a2a-protocol.mdx)** - Learn about Google's Agent-to-Agent Protocol
+- **[A2A Protocol](core-technology/a2a-protocol.mdx)** - Complete guide including use cases, pricing, and roadmap
 - **[AP2 Protocol](core-technology/ap2-protocol.mdx)** - Understand secure agent payments
 - **[Platform Features](platform/features.mdx)** - Explore Intra's capabilities
 - **[Architecture](platform/architecture.mdx)** - System design and components
-
-### Resources
-- **[Use Cases](use-cases.mdx)** - Real-world applications
-- **[Pricing](pricing.mdx)** - Plans and pricing
-- **[Roadmap](roadmap.mdx)** - Product roadmap and future plans
 - **[API Reference](api-reference/introduction.mdx)** - Complete API documentation
 
 ## 🎨 Design System
