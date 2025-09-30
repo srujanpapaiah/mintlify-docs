@@ -1,0 +1,457 @@
+---
+title: 'Roadmap'
+description: 'Our vision for the future of agent orchestration'
+icon: 'map'
+---
+
+## Product Roadmap
+
+Intra is evolving rapidly to become the definitive platform for agent orchestration. Here's what we've accomplished and what's coming next.
+
+## Phase 1: Foundation ✅
+
+**Status:** Complete
+
+Building the core infrastructure and establishing our technology foundation.
+
+<AccordionGroup>
+  <Accordion title="Research & Planning" icon="magnifying-glass" defaultOpen>
+    - [x] Research A2A protocol specification
+    - [x] Research AP2 payment protocol
+    - [x] Define platform architecture
+    - [x] Technology stack selection
+    - [x] Security and compliance review
+  </Accordion>
+  
+  <Accordion title="Core Platform" icon="server">
+    - [x] Landing page with A2A messaging
+    - [x] Comprehensive About page
+    - [x] A2A architecture visualization
+    - [x] Platform features overview
+    - [x] Use cases documentation
+  </Accordion>
+  
+  <Accordion title="Agent Registration" icon="pen-to-square">
+    - [x] 8-step agent registration wizard
+    - [x] TypeScript type system
+    - [x] Agent status badges
+    - [x] Domain verification (DNS + File)
+    - [x] Basic validation
+  </Accordion>
+  
+  <Accordion title="Documentation" icon="book">
+    - [x] API documentation structure
+    - [x] Quick start guides
+    - [x] Core concepts
+    - [x] Platform architecture docs
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Phase 2: Registry & Discovery 🚧
+
+**Status:** In Progress  
+**Target:** Q4 2025
+
+Enhance agent discovery and registration capabilities.
+
+<Steps>
+  <Step title="Agent Detail Pages">
+    - [ ] Comprehensive agent profile pages
+    - [ ] Tabbed interface (Overview, API, Pricing, Reviews)
+    - [ ] Usage examples and documentation
+    - [ ] Version history
+    - [ ] Performance metrics
+  </Step>
+  
+  <Step title="Preflight Testing">
+    - [ ] Test agent endpoints before publishing
+    - [ ] Validate Agent Card schema
+    - [ ] Check authentication flows
+    - [ ] Verify API responses
+    - [ ] Automated health checks
+  </Step>
+  
+  <Step title="Enhanced Search">
+    - [ ] Faceted search filters
+    - [ ] Advanced capability matching
+    - [ ] Natural language search
+    - [ ] Search result ranking
+    - [ ] Saved searches
+  </Step>
+  
+  <Step title="JSON Editor">
+    - [ ] In-browser Agent Card editor
+    - [ ] Real-time validation
+    - [ ] Schema autocomplete
+    - [ ] Import/export functionality
+    - [ ] Version control integration
+  </Step>
+  
+  <Step title="Backend API">
+    - [ ] RESTful API implementation
+    - [ ] GraphQL endpoint
+    - [ ] WebSocket support
+    - [ ] Rate limiting
+    - [ ] Caching layer
+  </Step>
+</Steps>
+
+---
+
+## Phase 3: Task Orchestration 📋
+
+**Status:** Planned  
+**Target:** Q1 2026
+
+Build the workflow engine and task management system.
+
+### Core Features
+
+<CardGroup cols={2}>
+  <Card title="Task Management" icon="list-check">
+    - [ ] Task creation API
+    - [ ] Lifecycle management
+    - [ ] Status tracking
+    - [ ] Task cancellation
+    - [ ] Priority queues
+  </Card>
+  
+  <Card title="Streaming" icon="stream">
+    - [ ] Server-Sent Events (SSE)
+    - [ ] WebSocket streaming
+    - [ ] Progress updates
+    - [ ] Real-time notifications
+    - [ ] Backpressure handling
+  </Card>
+  
+  <Card title="Routing" icon="route">
+    - [ ] Cost-aware routing
+    - [ ] Performance-based routing
+    - [ ] Geographic routing
+    - [ ] Custom routing rules
+    - [ ] A/B testing support
+  </Card>
+  
+  <Card title="Resilience" icon="shield">
+    - [ ] Automatic retries
+    - [ ] Circuit breakers
+    - [ ] Fallback strategies
+    - [ ] Timeout management
+    - [ ] Dead letter queues
+  </Card>
+</CardGroup>
+
+### Workflow Engine
+
+```python
+# Example of planned workflow capabilities
+from intra import Workflow
+
+workflow = Workflow(
+    name="complex-pipeline",
+    retry_policy={
+        "max_attempts": 3,
+        "backoff": "exponential"
+    },
+    timeout=3600
+)
+
+# Parallel execution
+parallel_tasks = workflow.add_parallel([
+    Task(agent="agent-1", skill="process"),
+    Task(agent="agent-2", skill="analyze"),
+    Task(agent="agent-3", skill="validate")
+])
+
+# Sequential with dependencies
+final_task = workflow.add_task(
+    agent="aggregator",
+    skill="combine",
+    input=parallel_tasks.outputs,
+    depends_on=parallel_tasks
+)
+
+result = await workflow.execute()
+```
+
+---
+
+## Phase 4: Observability 📊
+
+**Status:** Planned  
+**Target:** Q2 2026
+
+Comprehensive monitoring, tracing, and analytics.
+
+### Features
+
+<Tabs>
+  <Tab title="Distributed Tracing">
+    - [ ] OpenTelemetry integration
+    - [ ] Span collection and storage
+    - [ ] Trace visualization
+    - [ ] Context propagation
+    - [ ] Trace sampling
+    - [ ] Performance analysis
+  </Tab>
+  
+  <Tab title="Metrics & Dashboards">
+    - [ ] Real-time metrics collection
+    - [ ] Custom dashboards
+    - [ ] Agent performance metrics
+    - [ ] Cost tracking
+    - [ ] Usage analytics
+    - [ ] Trend analysis
+  </Tab>
+  
+  <Tab title="Logging">
+    - [ ] Structured logging
+    - [ ] Log aggregation
+    - [ ] Full-text search
+    - [ ] Log filtering
+    - [ ] Retention policies
+    - [ ] Export capabilities
+  </Tab>
+  
+  <Tab title="Alerting">
+    - [ ] Threshold-based alerts
+    - [ ] Anomaly detection
+    - [ ] Alert routing
+    - [ ] Integration with PagerDuty, Slack
+    - [ ] Alert history
+    - [ ] Escalation policies
+  </Tab>
+</Tabs>
+
+### Monitoring Dashboard
+
+Features planned for the observability dashboard:
+
+- 📈 Real-time request volume
+- ⏱️ Latency percentiles (p50, p95, p99)
+- ❌ Error rates and types
+- 💰 Cost attribution by agent/task
+- 🌍 Geographic distribution
+- 📊 Custom metrics
+- 🔔 Active alerts
+- 📉 Historical trends
+
+---
+
+## Phase 5: AP2 Integration 💳
+
+**Status:** Planned  
+**Target:** Q3 2026
+
+Implement the Agent Payments Protocol for secure transactions.
+
+### Payment Infrastructure
+
+<Steps>
+  <Step title="Payment Processing">
+    - [ ] Stripe integration
+    - [ ] PayPal support
+    - [ ] Cryptocurrency payments
+    - [ ] Multi-currency support
+    - [ ] Payment method management
+  </Step>
+  
+  <Step title="Consent Management">
+    - [ ] Consent request UI
+    - [ ] Approval workflows
+    - [ ] Consent history
+    - [ ] Timeout handling
+    - [ ] Multi-step approvals
+  </Step>
+  
+  <Step title="Deployment Billing">
+    - [ ] Agent deployment provisioning
+    - [ ] Usage metering
+    - [ ] Automated billing
+    - [ ] Cost allocation
+    - [ ] Budget alerts
+  </Step>
+  
+  <Step title="Compliance">
+    - [ ] PCI DSS compliance
+    - [ ] Audit trail system
+    - [ ] Transaction logging
+    - [ ] Dispute management
+    - [ ] Fraud detection
+  </Step>
+</Steps>
+
+---
+
+## Phase 6: Developer Experience 👨‍💻
+
+**Status:** Planned  
+**Target:** Q4 2026
+
+Enhanced tools and resources for agent developers.
+
+### SDKs & Tools
+
+<CardGroup cols={2}>
+  <Card title="SDKs" icon="code">
+    - [ ] Python SDK (v2)
+    - [ ] Node.js SDK
+    - [ ] Go SDK
+    - [ ] Java SDK
+    - [ ] .NET SDK
+    - [ ] Ruby SDK
+  </Card>
+  
+  <Card title="CLI Tools" icon="terminal">
+    - [ ] Agent management CLI
+    - [ ] Local testing tools
+    - [ ] Deployment automation
+    - [ ] Log streaming
+    - [ ] Configuration management
+  </Card>
+  
+  <Card title="Documentation" icon="book">
+    - [ ] Interactive tutorials
+    - [ ] Video guides
+    - [ ] Example agents library
+    - [ ] Best practices guide
+    - [ ] Migration guides
+  </Card>
+  
+  <Card title="Marketplace" icon="store">
+    - [ ] Public agent marketplace
+    - [ ] Agent templates
+    - [ ] Community contributions
+    - [ ] Rating and reviews
+    - [ ] Revenue sharing
+  </Card>
+</CardGroup>
+
+### Development Tools
+
+```bash
+# Planned CLI capabilities
+intra init my-agent                 # Create new agent
+intra dev                            # Local development server
+intra test                           # Run tests
+intra deploy                         # Deploy to Intra
+intra logs --tail --filter error    # Stream logs
+intra metrics --live                # Live metrics
+```
+
+---
+
+## Future Phases
+
+### Phase 7: Enterprise Features (2027)
+
+- Advanced security features (SSO, SAML)
+- Custom deployment options (on-premise, private cloud)
+- Enhanced compliance (SOC 2, ISO 27001, HIPAA)
+- Multi-tenancy support
+- White-label options
+- Advanced analytics and reporting
+
+### Phase 8: AI-Native Features (2027)
+
+- AI-powered agent discovery
+- Automated workflow optimization
+- Intelligent cost optimization
+- Predictive scaling
+- Auto-healing systems
+- Natural language workflow creation
+
+### Phase 9: Ecosystem Growth (2028+)
+
+- Agent composition tools
+- Cross-platform integrations
+- Agent marketplaces
+- Community governance
+- Standards contribution
+- Open-source components
+
+---
+
+## Community Requests
+
+We're listening to our community! Here are some frequently requested features:
+
+<AccordionGroup>
+  <Accordion title="Agent Versioning & Rollback" icon="code-branch">
+    **Status:** Planned for Phase 2
+    
+    Ability to manage multiple versions of agents and rollback to previous versions if needed.
+  </Accordion>
+  
+  <Accordion title="GraphQL API" icon="diagram-project">
+    **Status:** Planned for Phase 2
+    
+    GraphQL endpoint for more flexible API queries.
+  </Accordion>
+  
+  <Accordion title="Agent Collaboration" icon="users">
+    **Status:** Planned for Phase 3
+    
+    Enable agents to directly communicate and collaborate without human intervention.
+  </Accordion>
+  
+  <Accordion title="Custom Authentication" icon="key">
+    **Status:** Under Review
+    
+    Support for custom authentication schemes beyond OAuth, API keys, and mTLS.
+  </Accordion>
+  
+  <Accordion title="Multi-Region Deployment" icon="globe">
+    **Status:** Planned for Phase 7
+    
+    Deploy agents across multiple geographic regions for lower latency.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## How to Influence the Roadmap
+
+We value community input! Here's how you can help shape Intra's future:
+
+<CardGroup cols={2}>
+  <Card title="Feature Requests" icon="lightbulb" href="https://github.com/intra/roadmap/issues">
+    Submit ideas on our public roadmap
+  </Card>
+  
+  <Card title="Community Forum" icon="comments" href="https://community.tryintra.app">
+    Discuss features with the community
+  </Card>
+  
+  <Card title="Beta Program" icon="flask" href="mailto:beta@tryintra.app">
+    Join our beta testing program
+  </Card>
+  
+  <Card title="Enterprise Feedback" icon="building" href="mailto:enterprise@tryintra.app">
+    Enterprise customers can request features
+  </Card>
+</CardGroup>
+
+---
+
+## Release Notes
+
+Stay updated with our latest releases:
+
+### v0.0.1 (Current)
+- ✨ Initial platform launch
+- ✨ Agent registration wizard
+- ✨ Basic registry search
+- ✨ Domain verification
+- ✨ Documentation site
+
+---
+
+**Last Updated:** September 30, 2025  
+**Next Update:** October 2025
+
+<Info>
+  This roadmap is subject to change based on user feedback, technical challenges, and business priorities. We'll keep this page updated with our latest plans.
+</Info>

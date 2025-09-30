@@ -1,66 +1,66 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Intra Docs",
+  "name": "Intra Documentation",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#4F46E5",
+    "light": "#6366F1",
+    "dark": "#4338CA",
+    "background": {
+      "dark": "#0F172A"
+    }
   },
   "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Getting Started",
             "pages": [
               "index",
-              "quickstart",
-              "development"
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Technology",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "core-technology/a2a-protocol",
+              "core-technology/ap2-protocol"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Platform",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "platform/features",
+              "platform/architecture"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Resources",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "use-cases",
+              "pricing",
+              "roadmap"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "API Documentation",
             "pages": [
               "api-reference/introduction"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Endpoints",
             "pages": [
-              "api-reference/endpoint/get",
               "api-reference/endpoint/create",
+              "api-reference/endpoint/get",
               "api-reference/endpoint/delete",
               "api-reference/endpoint/webhook"
             ]
@@ -71,52 +71,88 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://docs.tryintra.app",
-          "icon": "book-open-cover"
+          "anchor": "Dashboard",
+          "href": "https://tryintra.app",
+          "icon": "grid"
         },
         {
-          "anchor": "Blog",
-          "href": "https://tryintra.com/blog",
-          "icon": "newspaper"
+          "anchor": "Community",
+          "href": "https://community.tryintra.app",
+          "icon": "users"
+        },
+        {
+          "anchor": "API Status",
+          "href": "https://status.tryintra.app",
+          "icon": "signal"
         }
       ]
     }
   },
   "logo": {
     "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "dark": "/logo/dark.svg",
+    "href": "https://tryintra.app"
   },
   "navbar": {
     "links": [
       {
+        "label": "Blog",
+        "href": "https://tryintra.app/blog"
+      },
+      {
         "label": "Support",
-        "href": "mailto:hello@tryintra.app"
+        "href": "mailto:support@tryintra.app"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://tryintra.app"
+      "label": "Get Started",
+      "href": "https://tryintra.app/signup"
     }
   },
   "contextual": {
     "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/intra",
+      "x": "https://x.com/tryintra",
       "github": "https://github.com/intra-app",
       "linkedin": "https://linkedin.com/company/intra"
+    },
+    "links": [
+      {
+        "label": "Privacy Policy",
+        "href": "https://tryintra.app/privacy"
+      },
+      {
+        "label": "Terms of Service",
+        "href": "https://tryintra.app/terms"
+      }
+    ]
+  },
+  "analytics": {
+    "plausible": {
+      "domain": "docs.tryintra.app"
     }
+  },
+  "seo": {
+    "indexHiddenPages": false
+  },
+  "search": {
+    "prompt": "Search Intra documentation..."
+  },
+  "feedback": {
+    "thumbsRating": true,
+    "suggestEdit": true,
+    "raiseIssue": true
   }
 }

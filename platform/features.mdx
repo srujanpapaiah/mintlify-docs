@@ -1,0 +1,512 @@
+---
+title: 'Platform Features'
+description: 'Enterprise-grade capabilities for agent orchestration and management'
+icon: 'grid'
+---
+
+## Overview
+
+Intra provides a comprehensive suite of features designed to make agent discovery, orchestration, and management seamless and secure. Built on open standards, our platform ensures interoperability while delivering enterprise-grade reliability.
+
+## Core Features
+
+### 1. Agent Discovery
+
+**Find agents instantly** through our capability-based registry powered by the A2A Protocol.
+
+<CardGroup cols={2}>
+  <Card title="Capability-Based Search" icon="magnifying-glass">
+    Find agents by what they can do, not just by name. Search across skills, modalities, and domains.
+  </Card>
+  
+  <Card title="Version Management" icon="code-branch">
+    Support for multiple versions with deprecation handling. Ensure backward compatibility.
+  </Card>
+  
+  <Card title="Real-Time Updates" icon="signal-stream">
+    Stay informed about agent status and availability with live updates.
+  </Card>
+  
+  <Card title="Agent Cards" icon="id-card">
+    Standardized machine-readable capability descriptions following A2A specification.
+  </Card>
+</CardGroup>
+
+**Example Search:**
+
+```python
+from intra import Registry
+
+registry = Registry()
+
+# Search by capabilities
+agents = registry.search(
+    capabilities=["data-analysis", "visualization"],
+    modalities=["text", "json"],
+    min_version="1.0.0"
+)
+
+# Advanced filtering
+premium_agents = registry.search(
+    filters={
+        "pricing.tier": "premium",
+        "provider.verified": True,
+        "rateLimit.requests": {"$gte": 1000}
+    }
+)
+
+# Full-text search
+results = registry.search(
+    query="machine learning model training",
+    limit=10
+)
+```
+
+### 2. Workflow Orchestration
+
+**Coordinate complex workflows** with multi-turn agent interactions and intelligent routing.
+
+<Tabs>
+  <Tab title="Task-Based Workflows">
+    ```python
+    from intra import Workflow, Task
+    
+    # Create workflow
+    workflow = Workflow(name="research-pipeline")
+    
+    # Add tasks with dependencies
+    research_task = workflow.add_task(
+        agent="research-agent",
+        skill="gather_data",
+        input={"topic": "AI trends"}
+    )
+    
+    analysis_task = workflow.add_task(
+        agent="analyzer",
+        skill="analyze",
+        input={"data": research_task.output},
+        depends_on=[research_task]
+    )
+    
+    report_task = workflow.add_task(
+        agent="writer",
+        skill="generate_report",
+        input={"analysis": analysis_task.output},
+        depends_on=[analysis_task]
+    )
+    
+    # Execute workflow
+    result = workflow.execute()
+    ```
+  </Tab>
+  
+  <Tab title="Streaming Updates">
+    ```python
+    # Stream real-time progress
+    for update in workflow.stream():
+        print(f"Task: {update.task_id}")
+        print(f"Status: {update.status}")
+        print(f"Progress: {update.progress}%")
+        
+        if update.status == "completed":
+            print(f"Output: {update.output}")
+    ```
+  </Tab>
+  
+  <Tab title="Cost-Aware Routing">
+    ```python
+    # Optimize for cost vs performance
+    workflow = Workflow(
+        routing_strategy="cost_optimized",
+        constraints={
+            "max_cost": 10.00,
+            "max_latency": 30.0  # seconds
+        }
+    )
+    
+    # Platform automatically selects most cost-effective agents
+    result = workflow.execute()
+    print(f"Total cost: ${result.cost}")
+    ```
+  </Tab>
+</Tabs>
+
+**Features:**
+- ✅ Clear lifecycle management (pending → in-progress → completed)
+- ✅ Streaming support for real-time progress feedback
+- ✅ Cost-aware routing to optimize for performance or budget
+- ✅ Smart load balancing across agent instances
+- ✅ Retry & circuit breakers for resilience
+
+### 3. Enterprise-Grade Observability
+
+**Full distributed tracing** for every agent interaction with real-time monitoring.
+
+<CardGroup cols={2}>
+  <Card title="Distributed Tracing" icon="route">
+    Track requests across multiple agent hops with OpenTelemetry-compatible tracing.
+  </Card>
+  
+  <Card title="Real-Time Monitoring" icon="chart-line">
+    Live dashboards showing agent performance, latency, and throughput.
+  </Card>
+  
+  <Card title="Audit Logging" icon="clipboard-list">
+    Complete history of all agent interactions for compliance and debugging.
+  </Card>
+  
+  <Card title="Cost Tracking" icon="dollar-sign">
+    Per-agent and per-task cost attribution with detailed breakdowns.
+  </Card>
+</CardGroup>
+
+**Observability Dashboard:**
+
+```python
+from intra import Observability
+
+obs = Observability()
+
+# Get real-time metrics
+metrics = obs.get_metrics(
+    agent_id="data-analyzer",
+    time_range="24h",
+    metrics=["requests", "latency", "errors", "cost"]
+)
+
+print(f"Total requests: {metrics.requests}")
+print(f"Avg latency: {metrics.latency.avg}ms")
+print(f"Error rate: {metrics.errors.rate}%")
+print(f"Total cost: ${metrics.cost.total}")
+
+# Get distributed traces
+traces = obs.get_traces(
+    workflow_id="wf_123",
+    include_spans=True
+)
+
+# Visualize trace
+for span in traces.spans:
+    print(f"{'  ' * span.depth}{span.agent_id}: {span.duration}ms")
+```
+
+**Features:**
+- 📊 Real-time dashboards
+- 🔍 Distributed tracing
+- 📝 Audit logging
+- 💰 Cost tracking
+- 🚨 Error monitoring
+- 📈 Performance metrics
+
+### 4. Secure Payments (AP2)
+
+**Transaction accountability** with user consent verification for AI-driven purchases.
+
+<Steps>
+  <Step title="Payment Intent">
+    Agent creates a payment intent with amount and description
+  </Step>
+  <Step title="User Consent">
+    User reviews and approves the transaction
+  </Step>
+  <Step title="Processing">
+    Payment is processed securely through verified providers
+  </Step>
+  <Step title="Confirmation">
+    Receipt and audit trail are generated automatically
+  </Step>
+</Steps>
+
+**Example:**
+
+```python
+from intra import PaymentClient
+
+payment = PaymentClient()
+
+# Create payment intent
+intent = payment.create_intent(
+    amount=29.99,
+    currency="USD",
+    description="Premium subscription",
+    metadata={"agent_id": "subscription-agent"}
+)
+
+# Request user consent
+consent = await payment.request_consent(
+    intent_id=intent.id,
+    user_id="user_123",
+    timeout=300  # 5 minutes
+)
+
+# Process after approval
+if consent.approved:
+    result = payment.process(intent.id)
+    print(f"✅ Payment successful: {result.receipt_url}")
+```
+
+**Features:**
+- 💳 Secure payment processing
+- ✅ Consent verification workflows
+- 🚀 Agent deployment provisioning
+- 📊 Usage metering and billing
+- 🔒 PCI DSS compliance
+- 🧾 Automatic receipts
+
+### 5. Multi-Framework Support
+
+**Works with any agent framework** - truly framework agnostic.
+
+<Tabs>
+  <Tab title="CrewAI">
+    ```python
+    from crewai import Agent, Task
+    from intra import A2AAdapter
+    
+    # Your CrewAI agent
+    researcher = Agent(
+        role="Researcher",
+        goal="Research topics thoroughly",
+        backstory="Expert researcher"
+    )
+    
+    # Make it A2A-compatible
+    a2a_agent = A2AAdapter.from_crewai(researcher)
+    a2a_agent.register()
+    ```
+  </Tab>
+  
+  <Tab title="AutoGen">
+    ```python
+    from autogen import AssistantAgent
+    from intra import A2AAdapter
+    
+    assistant = AssistantAgent(
+        name="assistant",
+        llm_config={"model": "gpt-4"}
+    )
+    
+    a2a_agent = A2AAdapter.from_autogen(assistant)
+    a2a_agent.register()
+    ```
+  </Tab>
+  
+  <Tab title="LangGraph">
+    ```python
+    from langgraph.graph import StateGraph
+    from intra import A2AAdapter
+    
+    # Your LangGraph workflow
+    graph = StateGraph(...)
+    
+    a2a_agent = A2AAdapter.from_langgraph(
+        graph,
+        name="langgraph-agent"
+    )
+    a2a_agent.register()
+    ```
+  </Tab>
+  
+  <Tab title="OpenAI">
+    ```python
+    from openai import OpenAI
+    from intra import Agent
+    
+    client = OpenAI()
+    agent = Agent(name="openai-agent")
+    
+    @agent.skill(name="chat")
+    async def chat(message: str):
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": message}]
+        )
+        return response.choices[0].message.content
+    
+    agent.register()
+    ```
+  </Tab>
+</Tabs>
+
+**Supported Frameworks:**
+- ✅ CrewAI
+- ✅ AutoGen
+- ✅ LangGraph
+- ✅ OpenAI SDK
+- ✅ LlamaIndex
+- ✅ Custom implementations
+
+## Advanced Features
+
+### Load Balancing
+
+Automatically distribute tasks across multiple agent instances:
+
+```python
+from intra import LoadBalancer
+
+balancer = LoadBalancer(
+    strategy="round_robin",  # or "least_connections", "weighted"
+    health_check_interval=30
+)
+
+# Add agent instances
+balancer.add_instances([
+    "agent-instance-1",
+    "agent-instance-2",
+    "agent-instance-3"
+])
+
+# Tasks are automatically distributed
+for task in tasks:
+    instance = balancer.get_next_instance()
+    instance.execute(task)
+```
+
+### Circuit Breakers
+
+Prevent cascading failures with automatic circuit breaking:
+
+```python
+from intra import CircuitBreaker
+
+breaker = CircuitBreaker(
+    failure_threshold=5,
+    timeout=60,
+    recovery_timeout=300
+)
+
+@breaker.protect
+async def call_agent(agent_id, task):
+    return await agent.execute(task)
+
+# Automatically trips circuit after failures
+try:
+    result = await call_agent("data-analyzer", task)
+except CircuitBreakerOpen:
+    # Handle degraded mode
+    result = await fallback_handler(task)
+```
+
+### Rate Limiting
+
+Control request rates to protect agents and manage costs:
+
+```python
+from intra import RateLimiter
+
+limiter = RateLimiter(
+    requests_per_second=10,
+    burst=20
+)
+
+@limiter.limit
+async def process_task(task):
+    return await agent.execute(task)
+```
+
+### Caching
+
+Improve performance and reduce costs with intelligent caching:
+
+```python
+from intra import Cache
+
+cache = Cache(
+    ttl=3600,  # 1 hour
+    max_size=1000
+)
+
+@cache.memoize
+async def expensive_operation(input_data):
+    return await agent.execute(input_data)
+```
+
+## Developer Tools
+
+### CLI
+
+Manage agents from the command line:
+
+```bash
+# List agents
+intra agents list
+
+# Register new agent
+intra agents create --file agent-card.json
+
+# Test agent
+intra agents test my-agent --input '{"query": "test"}'
+
+# View logs
+intra logs --agent my-agent --tail 100
+
+# Monitor metrics
+intra metrics --agent my-agent --live
+```
+
+### SDKs
+
+Official SDKs for popular languages:
+
+<CardGroup cols={3}>
+  <Card title="Python" icon="python">
+    ```bash
+    pip install intra
+    ```
+  </Card>
+  
+  <Card title="Node.js" icon="node-js">
+    ```bash
+    npm install @intra/sdk
+    ```
+  </Card>
+  
+  <Card title="Go" icon="golang">
+    ```bash
+    go get github.com/intra/sdk-go
+    ```
+  </Card>
+</CardGroup>
+
+### API Documentation
+
+Interactive API documentation with examples:
+
+- OpenAPI 3.0 specification
+- Interactive API explorer
+- Code generation for any language
+- Webhook testing tools
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Platform Architecture"
+    icon="sitemap"
+    href="/platform/architecture"
+  >
+    Understand system design
+  </Card>
+  <Card
+    title="Observability"
+    icon="chart-mixed"
+    href="/platform/observability"
+  >
+    Deep dive into monitoring
+  </Card>
+  <Card
+    title="Security"
+    icon="shield"
+    href="/platform/security"
+  >
+    Learn about security features
+  </Card>
+  <Card
+    title="Quick Start"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Get started now
+  </Card>
+</CardGroup>

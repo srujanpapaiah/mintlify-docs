@@ -1,0 +1,492 @@
+---
+title: 'AP2 Protocol'
+description: 'Agent Payments Protocol for secure AI-driven transactions'
+icon: 'credit-card'
+---
+
+## Overview
+
+The **Agent Payments Protocol (AP2)** is built on top of A2A to enable secure and trustworthy AI-driven transactions. AP2 ensures agents accurately follow user instructions, maintain transaction accountability, and verify user consent for purchases and deployments.
+
+<Warning>
+  **Important:** AP2 requires explicit user consent before any financial transaction. Never bypass consent verification.
+</Warning>
+
+## Key Capabilities
+
+### 1. Agent Payments
+
+Secure payment processing with comprehensive audit trails:
+
+<CardGroup cols={2}>
+  <Card title="Payment Processing" icon="money-bill">
+    - Credit card processing
+    - Digital wallet integration
+    - Cryptocurrency support
+    - Multi-currency handling
+  </Card>
+  
+  <Card title="Audit Trails" icon="list-check">
+    - Full transaction history
+    - Compliance logging
+    - Receipt generation
+    - Dispute resolution
+  </Card>
+</CardGroup>
+
+**Example Payment Flow:**
+
+```python
+from intra import PaymentClient
+
+payment = PaymentClient()
+
+# Create payment intent
+intent = payment.create_intent(
+    amount=29.99,
+    currency="USD",
+    description="Premium subscription",
+    metadata={
+        "agent_id": "subscription-agent",
+        "user_id": "user_123"
+    }
+)
+
+# Request user consent
+consent = payment.request_consent(
+    intent_id=intent.id,
+    user_id="user_123"
+)
+
+# Process payment after consent
+if consent.approved:
+    result = payment.process(intent.id)
+    print(f"Payment successful: {result.receipt_url}")
+```
+
+### 2. User Consent Verification
+
+Ensures agents follow user instructions and obtain proper authorization:
+
+<Steps>
+  <Step title="Request Consent">
+    Agent requests permission for the transaction
+  </Step>
+  <Step title="User Review">
+    User sees clear details and amount
+  </Step>
+  <Step title="Approve/Deny">
+    User explicitly approves or denies
+  </Step>
+  <Step title="Execute">
+    Transaction proceeds only after approval
+  </Step>
+</Steps>
+
+**Consent Request Schema:**
+
+```json
+{
+  "consentId": "consent_abc123",
+  "type": "payment",
+  "status": "pending",
+  "details": {
+    "action": "Purchase subscription",
+    "amount": 29.99,
+    "currency": "USD",
+    "recipient": "Intra Platform",
+    "description": "Monthly Premium subscription"
+  },
+  "requestedBy": {
+    "agentId": "subscription-agent",
+    "agentName": "Subscription Manager"
+  },
+  "expiresAt": "2025-09-30T14:30:00Z"
+}
+```
+
+### 3. Transaction Accountability
+
+Full tracking and verification of all financial operations:
+
+<Tabs>
+  <Tab title="Transaction Log">
+    ```json
+    {
+      "transactionId": "txn_xyz789",
+      "timestamp": "2025-09-30T12:00:00Z",
+      "type": "payment",
+      "status": "completed",
+      "amount": 29.99,
+      "currency": "USD",
+      "parties": {
+        "payer": "user_123",
+        "payee": "intra_platform",
+        "agent": "subscription-agent"
+      },
+      "consentId": "consent_abc123",
+      "receiptUrl": "https://intra.app/receipts/txn_xyz789"
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Audit Record">
+    ```json
+    {
+      "auditId": "audit_456",
+      "transactionId": "txn_xyz789",
+      "events": [
+        {
+          "timestamp": "2025-09-30T11:59:00Z",
+          "action": "consent_requested",
+          "actor": "subscription-agent"
+        },
+        {
+          "timestamp": "2025-09-30T11:59:30Z",
+          "action": "consent_approved",
+          "actor": "user_123"
+        },
+        {
+          "timestamp": "2025-09-30T12:00:00Z",
+          "action": "payment_processed",
+          "actor": "payment_gateway"
+        }
+      ],
+      "compliance": {
+        "gdpr": true,
+        "pci_dss": true,
+        "soc2": true
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### 4. Agent Deployment Billing
+
+Automated provisioning and cost tracking for agent deployments:
+
+```python
+from intra import DeploymentClient
+
+deploy = DeploymentClient()
+
+# Deploy agent with billing
+deployment = deploy.create(
+    agent_id="data-analyzer",
+    instance_type="standard",
+    billing_plan="pay_as_you_go",
+    cost_limits={
+        "daily_max": 50.00,
+        "monthly_max": 1000.00
+    }
+)
+
+# Monitor usage and costs
+usage = deploy.get_usage(deployment.id)
+print(f"Current cost: ${usage.current_cost}")
+print(f"Estimated monthly: ${usage.estimated_monthly}")
+
+# Get detailed billing
+billing = deploy.get_billing(
+    deployment.id,
+    period="current_month"
+)
+```
+
+## Use Cases
+
+### E-commerce Transactions
+
+Enable agents to make purchases on behalf of users:
+
+```python
+from intra import EcommerceAgent, PaymentClient
+
+agent = EcommerceAgent()
+payment = PaymentClient()
+
+@agent.on_task
+async def purchase_product(product_id: str, quantity: int):
+    # Calculate total
+    product = get_product(product_id)
+    total = product.price * quantity
+    
+    # Request user consent
+    consent = await payment.request_consent(
+        amount=total,
+        description=f"Purchase {quantity}x {product.name}",
+        details={
+            "product_id": product_id,
+            "quantity": quantity,
+            "unit_price": product.price
+        }
+    )
+    
+    if consent.approved:
+        # Process payment
+        result = await payment.process(consent.id)
+        
+        # Fulfill order
+        order = create_order(product_id, quantity, result.transaction_id)
+        
+        return {
+            "status": "success",
+            "order_id": order.id,
+            "receipt_url": result.receipt_url
+        }
+    else:
+        return {
+            "status": "declined",
+            "reason": "User did not approve payment"
+        }
+```
+
+### Subscription Management
+
+Automate subscription lifecycle with proper consent:
+
+```python
+@agent.on_task
+async def manage_subscription(action: str, plan: str):
+    if action == "upgrade":
+        # Calculate price difference
+        current = get_current_plan()
+        new_plan = get_plan(plan)
+        prorated = calculate_proration(current, new_plan)
+        
+        # Request consent for upgrade
+        consent = await payment.request_consent(
+            amount=prorated,
+            description=f"Upgrade to {plan} plan",
+            recurring={
+                "frequency": "monthly",
+                "amount": new_plan.price
+            }
+        )
+        
+        if consent.approved:
+            # Process upgrade
+            result = upgrade_subscription(plan, consent.id)
+            return {"status": "upgraded", "plan": plan}
+    
+    elif action == "cancel":
+        # No payment needed for cancellation
+        result = cancel_subscription()
+        return {"status": "cancelled"}
+```
+
+### Agent Deployment & Compute Billing
+
+Track and bill for agent resource usage:
+
+```python
+from intra import DeploymentClient, UsageTracker
+
+deploy = DeploymentClient()
+tracker = UsageTracker()
+
+# Deploy agent with usage tracking
+deployment = deploy.create(
+    agent_id="ml-trainer",
+    resources={
+        "cpu": "8 cores",
+        "memory": "32GB",
+        "gpu": "NVIDIA A100"
+    },
+    billing={
+        "model": "pay_as_you_go",
+        "rates": {
+            "compute": 0.50,  # per hour
+            "storage": 0.10,  # per GB/month
+            "egress": 0.01    # per GB
+        }
+    }
+)
+
+# Track usage
+@deployment.on_usage
+async def track_usage(metrics):
+    cost = tracker.calculate_cost(
+        compute_hours=metrics.compute_hours,
+        storage_gb=metrics.storage_gb,
+        egress_gb=metrics.egress_gb
+    )
+    
+    # Alert if approaching limit
+    if cost.daily > deployment.cost_limits.daily_max * 0.9:
+        await notify_user("Approaching daily cost limit")
+    
+    return cost
+```
+
+## Security Features
+
+<CardGroup cols={2}>
+  <Card title="PCI DSS Compliance" icon="shield-check">
+    Full PCI DSS Level 1 compliance for payment processing
+  </Card>
+  
+  <Card title="Encryption" icon="lock">
+    End-to-end encryption for all payment data
+  </Card>
+  
+  <Card title="Fraud Detection" icon="eye">
+    AI-powered fraud detection and prevention
+  </Card>
+  
+  <Card title="3D Secure" icon="shield">
+    Support for 3D Secure authentication
+  </Card>
+</CardGroup>
+
+## Compliance & Regulations
+
+AP2 ensures compliance with major financial regulations:
+
+<AccordionGroup>
+  <Accordion title="GDPR" icon="scale-balanced">
+    - Full data protection compliance
+    - Right to erasure support
+    - Data portability
+    - Consent management
+  </Accordion>
+  
+  <Accordion title="PCI DSS" icon="credit-card">
+    - Secure payment data handling
+    - Tokenization of card data
+    - Regular security audits
+    - Network segmentation
+  </Accordion>
+  
+  <Accordion title="SOC 2" icon="building-columns">
+    - Type II compliance ready
+    - Security controls
+    - Availability monitoring
+    - Confidentiality protection
+  </Accordion>
+  
+  <Accordion title="Regional Regulations" icon="globe">
+    - PSD2 (Europe)
+    - CCPA (California)
+    - Open Banking standards
+    - Local payment methods
+  </Accordion>
+</AccordionGroup>
+
+## Payment Methods Supported
+
+<Tabs>
+  <Tab title="Credit Cards">
+    - Visa
+    - Mastercard
+    - American Express
+    - Discover
+  </Tab>
+  
+  <Tab title="Digital Wallets">
+    - Apple Pay
+    - Google Pay
+    - PayPal
+    - Stripe Link
+  </Tab>
+  
+  <Tab title="Bank Transfers">
+    - ACH (US)
+    - SEPA (Europe)
+    - Wire transfers
+    - Open Banking
+  </Tab>
+  
+  <Tab title="Cryptocurrency">
+    - Bitcoin
+    - Ethereum
+    - USDC
+    - Other stablecoins
+  </Tab>
+</Tabs>
+
+## Error Handling
+
+AP2 provides detailed error codes and recovery mechanisms:
+
+```python
+from intra import PaymentError
+
+try:
+    result = payment.process(intent.id)
+except PaymentError as e:
+    if e.code == "insufficient_funds":
+        # Handle insufficient funds
+        await notify_user("Payment failed: Insufficient funds")
+    elif e.code == "consent_expired":
+        # Re-request consent
+        new_consent = await payment.request_consent(...)
+    elif e.code == "fraud_detected":
+        # Fraud detected, escalate
+        await escalate_to_human_review(intent.id)
+    else:
+        # Generic error handling
+        await log_error(e)
+```
+
+## Best Practices
+
+<Steps>
+  <Step title="Always Request Consent">
+    Never process payments without explicit user consent
+  </Step>
+  
+  <Step title="Provide Clear Details">
+    Show amount, recipient, and purpose clearly
+  </Step>
+  
+  <Step title="Set Cost Limits">
+    Implement daily and monthly spending limits
+  </Step>
+  
+  <Step title="Monitor Usage">
+    Track costs in real-time and alert users
+  </Step>
+  
+  <Step title="Maintain Audit Trails">
+    Keep detailed logs for compliance and disputes
+  </Step>
+  
+  <Step title="Handle Errors Gracefully">
+    Provide clear error messages and recovery paths
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Platform Features"
+    icon="grid"
+    href="/platform/features"
+  >
+    Explore Intra's capabilities
+  </Card>
+  <Card
+    title="Pricing"
+    icon="tag"
+    href="/pricing"
+  >
+    View our pricing tiers
+  </Card>
+  <Card
+    title="Security"
+    icon="shield"
+    href="/platform/security"
+  >
+    Learn about security measures
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/introduction"
+  >
+    Payment API documentation
+  </Card>
+</CardGroup>

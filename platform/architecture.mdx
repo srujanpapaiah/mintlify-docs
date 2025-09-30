@@ -1,0 +1,562 @@
+---
+title: 'Platform Architecture'
+description: 'Three-layer architecture for scalable agent orchestration'
+icon: 'sitemap'
+---
+
+## Architecture Overview
+
+Intra is built on a three-layer architecture that separates concerns and enables scalability, reliability, and maintainability.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        AGENT LAYER                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
+│  │ Data Analysis│  │   Content    │  │     Code     │     │
+│  │    Agent     │  │  Generator   │  │   Assistant  │     │
+│  └──────────────┘  └──────────────┘  └──────────────┘     │
+└─────────────────────────────────────────────────────────────┘
+                           ↓ A2A Protocol
+┌─────────────────────────────────────────────────────────────┐
+│                     INTRA PLATFORM                          │
+│  ┌───────────┐  ┌─────────────┐  ┌──────────────────┐     │
+│  │  Registry │  │Orchestration│  │   Observability  │     │
+│  │  Search   │  │   Routing   │  │   Tracing/Logs   │     │
+│  │Versioning │  │Load Balance │  │   Monitoring     │     │
+│  └───────────┘  └─────────────┘  └──────────────────┘     │
+│  ┌───────────┐  ┌─────────────┐                            │
+│  │ Security  │  │   Payments  │                            │
+│  │OAuth/Auth │  │   AP2 Integ │                            │
+│  └───────────┘  └─────────────┘                            │
+└─────────────────────────────────────────────────────────────┘
+                           ↓ HTTP/REST/WebSocket
+┌─────────────────────────────────────────────────────────────┐
+│                      PROTOCOL LAYER                         │
+│         A2A Protocol  │  AP2 Protocol  │  HTTP/REST         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Core Components
+
+### 1. Agent Registry
+
+A centralized repository where agents register their Agent Cards, making their capabilities discoverable to other agents.
+
+<CardGroup cols={2}>
+  <Card title="Registration" icon="pen-to-square">
+    - A2A-compliant agent cards
+    - Version management
+    - Capability indexing
+    - Metadata storage
+  </Card>
+  
+  <Card title="Discovery" icon="magnifying-glass">
+    - Capability-based search
+    - Full-text search
+    - Faceted filtering
+    - Real-time updates
+  </Card>
+  
+  <Card title="Verification" icon="shield-check">
+    - Domain verification
+    - Trust scoring
+    - Provider validation
+    - Signature verification
+  </Card>
+  
+  <Card title="Lifecycle" icon="arrows-rotate">
+    - Status management
+    - Version deprecation
+    - Health monitoring
+    - Archival
+  </Card>
+</CardGroup>
+
+**Architecture:**
+
+```typescript
+interface RegistryService {
+  // Registration
+  register(agentCard: AgentCard): Promise<Agent>;
+  update(agentId: string, updates: Partial<AgentCard>): Promise<Agent>;
+  delete(agentId: string): Promise<void>;
+  
+  // Discovery
+  search(query: SearchQuery): Promise<Agent[]>;
+  getAgent(agentId: string): Promise<Agent>;
+  listAgents(filters: Filters): Promise<Agent[]>;
+  
+  // Verification
+  verifyDomain(agentId: string, method: 'dns' | 'file'): Promise<boolean>;
+  signAgentCard(agentId: string, privateKey: string): Promise<Signature>;
+  
+  // Lifecycle
+  updateStatus(agentId: string, status: AgentStatus): Promise<void>;
+  deprecateVersion(agentId: string, version: string): Promise<void>;
+}
+```
+
+### 2. Orchestration Layer
+
+Smart routing, load balancing, and workflow management for reliable multi-agent systems.
+
+<Tabs>
+  <Tab title="Task Router">
+    **Intelligent Task Routing**
+    
+    ```typescript
+    class TaskRouter {
+      route(task: Task, constraints: Constraints): Agent {
+        // Find compatible agents
+        const candidates = registry.search({
+          capabilities: task.requiredCapabilities,
+          available: true
+        });
+        
+        // Apply routing strategy
+        switch (constraints.optimize) {
+          case 'cost':
+            return selectLowestCost(candidates);
+          case 'latency':
+            return selectFastest(candidates);
+          case 'quality':
+            return selectBestRated(candidates);
+          default:
+            return loadBalancer.select(candidates);
+        }
+      }
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Load Balancer">
+    **Distribute Load Across Instances**
+    
+    ```typescript
+    class LoadBalancer {
+      strategy: 'round-robin' | 'least-connections' | 'weighted';
+      healthCheck: HealthChecker;
+      
+      select(instances: AgentInstance[]): AgentInstance {
+        // Filter healthy instances
+        const healthy = instances.filter(i => 
+          this.healthCheck.isHealthy(i)
+        );
+        
+        // Apply strategy
+        return this.applyStrategy(healthy);
+      }
+      
+      applyStrategy(instances: AgentInstance[]): AgentInstance {
+        switch (this.strategy) {
+          case 'round-robin':
+            return this.roundRobin(instances);
+          case 'least-connections':
+            return this.leastConnections(instances);
+          case 'weighted':
+            return this.weighted(instances);
+        }
+      }
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Workflow Engine">
+    **Execute Multi-Step Workflows**
+    
+    ```typescript
+    class WorkflowEngine {
+      async execute(workflow: Workflow): Promise<WorkflowResult> {
+        const context = new ExecutionContext();
+        
+        // Build DAG from tasks
+        const dag = this.buildDAG(workflow.tasks);
+        
+        // Execute in topological order
+        for (const level of dag.levels) {
+          // Parallel execution within level
+          await Promise.all(
+            level.map(task => this.executeTask(task, context))
+          );
+        }
+        
+        return context.getResult();
+      }
+      
+      async executeTask(task: Task, context: Context): Promise<void> {
+        // Route to appropriate agent
+        const agent = this.router.route(task, workflow.constraints);
+        
+        // Execute with retry logic
+        const result = await this.retryExecutor.execute(
+          () => agent.execute(task.input),
+          { maxRetries: 3, backoff: 'exponential' }
+        );
+        
+        // Store result in context
+        context.setResult(task.id, result);
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+**Features:**
+- Cost-aware routing (optimize for performance or budget)
+- Retries and circuit breakers
+- Backpressure handling
+- Task lifecycle management
+- Parallel execution
+- Dependency resolution
+
+### 3. Security & Authentication
+
+Enterprise-grade security with multiple authentication schemes.
+
+<AccordionGroup>
+  <Accordion title="Authentication Methods" icon="key">
+    **Supported Auth Schemes:**
+    
+    - **Bearer Token**: Simple token-based authentication
+    - **API Key**: Header or query parameter authentication
+    - **OAuth 2.0**: Authorization Code and Client Credentials flows
+    - **Mutual TLS**: Certificate-based authentication
+    - **Custom**: Plugin your own auth mechanism
+    
+    ```typescript
+    interface AuthProvider {
+      authenticate(request: Request): Promise<Principal>;
+      authorize(principal: Principal, resource: Resource): Promise<boolean>;
+    }
+    
+    class BearerTokenAuth implements AuthProvider {
+      async authenticate(request: Request): Promise<Principal> {
+        const token = extractBearerToken(request);
+        const claims = await this.validateToken(token);
+        return new Principal(claims);
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Authorization & Access Control" icon="shield">
+    **Role-Based Access Control (RBAC)**
+    
+    ```typescript
+    interface AccessControl {
+      roles: Role[];
+      permissions: Permission[];
+      policies: Policy[];
+      
+      hasPermission(
+        principal: Principal,
+        action: Action,
+        resource: Resource
+      ): boolean;
+    }
+    
+    // Example: Check agent execution permission
+    if (accessControl.hasPermission(user, 'execute', agent)) {
+      await agent.execute(task);
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Rate Limiting" icon="gauge">
+    **Protect Against Abuse**
+    
+    ```typescript
+    class RateLimiter {
+      limits: Map<string, RateLimit>;
+      
+      async checkLimit(
+        key: string,
+        limit: RateLimit
+      ): Promise<boolean> {
+        const current = await this.getCount(key);
+        
+        if (current >= limit.max) {
+          throw new RateLimitExceeded(limit);
+        }
+        
+        await this.increment(key, limit.window);
+        return true;
+      }
+    }
+    
+    // Example: 100 requests per hour per user
+    rateLimiter.checkLimit(
+      `user:${userId}`,
+      { max: 100, window: 3600 }
+    );
+    ```
+  </Accordion>
+  
+  <Accordion title="Audit Logging" icon="clipboard-list">
+    **Compliance & Security Monitoring**
+    
+    ```typescript
+    interface AuditLog {
+      timestamp: Date;
+      principal: Principal;
+      action: string;
+      resource: string;
+      result: 'success' | 'failure';
+      metadata: Record<string, any>;
+    }
+    
+    class AuditLogger {
+      log(event: AuditLog): void {
+        // Store in compliance-ready format
+        this.storage.append({
+          ...event,
+          retention: '7years',
+          immutable: true
+        });
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### 4. Observability Suite
+
+Full visibility into agent behavior and performance.
+
+<CardGroup cols={2}>
+  <Card title="Tracing" icon="route">
+    **Distributed Tracing**
+    - OpenTelemetry integration
+    - Span collection
+    - Context propagation
+    - Trace visualization
+  </Card>
+  
+  <Card title="Metrics" icon="chart-line">
+    **Performance Metrics**
+    - Request rates
+    - Latency percentiles
+    - Error rates
+    - Custom metrics
+  </Card>
+  
+  <Card title="Logging" icon="file-lines">
+    **Structured Logging**
+    - JSON format
+    - Log aggregation
+    - Search & filtering
+    - Log retention
+  </Card>
+  
+  <Card title="Alerting" icon="bell">
+    **Proactive Monitoring**
+    - Threshold alerts
+    - Anomaly detection
+    - On-call integration
+    - Alert routing
+  </Card>
+</CardGroup>
+
+**Observability Stack:**
+
+```typescript
+class ObservabilityService {
+  tracer: Tracer;
+  metrics: MetricsCollector;
+  logger: Logger;
+  
+  // Instrument agent execution
+  async instrumentExecution<T>(
+    operation: string,
+    fn: () => Promise<T>
+  ): Promise<T> {
+    const span = this.tracer.startSpan(operation);
+    const timer = this.metrics.startTimer(operation);
+    
+    try {
+      const result = await fn();
+      
+      span.setStatus({ code: SpanStatusCode.OK });
+      this.metrics.increment(`${operation}.success`);
+      
+      return result;
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error.message
+      });
+      
+      this.metrics.increment(`${operation}.error`);
+      this.logger.error(operation, { error });
+      
+      throw error;
+    } finally {
+      timer.end();
+      span.end();
+    }
+  }
+}
+```
+
+### 5. AP2 Integration
+
+Payment processing and deployment infrastructure.
+
+```typescript
+class PaymentService {
+  processor: PaymentProcessor;
+  consentManager: ConsentManager;
+  auditLog: AuditLogger;
+  
+  async processPayment(
+    intent: PaymentIntent,
+    userId: string
+  ): Promise<PaymentResult> {
+    // Request user consent
+    const consent = await this.consentManager.request({
+      userId,
+      amount: intent.amount,
+      description: intent.description
+    });
+    
+    // Wait for approval
+    const approved = await consent.waitForApproval(timeout: 300);
+    
+    if (!approved) {
+      throw new ConsentDenied();
+    }
+    
+    // Process payment
+    const result = await this.processor.charge({
+      amount: intent.amount,
+      currency: intent.currency,
+      paymentMethod: intent.paymentMethod
+    });
+    
+    // Audit trail
+    this.auditLog.log({
+      action: 'payment.processed',
+      userId,
+      consentId: consent.id,
+      transactionId: result.id,
+      amount: intent.amount
+    });
+    
+    return result;
+  }
+}
+```
+
+## Scalability & Reliability
+
+### Horizontal Scaling
+
+All components are designed to scale horizontally:
+
+```yaml
+# Kubernetes Deployment Example
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: intra-orchestrator
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: orchestrator
+  template:
+    spec:
+      containers:
+      - name: orchestrator
+        image: intra/orchestrator:latest
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+```
+
+### High Availability
+
+- **Multi-region deployment**: Deploy across AWS, GCP, Azure
+- **Active-active**: All regions serve traffic
+- **Automatic failover**: Health checks and circuit breakers
+- **Data replication**: Consistent cross-region data
+
+### Disaster Recovery
+
+- **Backup & Restore**: Automated daily backups
+- **Point-in-time Recovery**: Restore to any point in last 30 days
+- **RTO**: < 1 hour
+- **RPO**: < 15 minutes
+
+## Technology Stack
+
+<Tabs>
+  <Tab title="Frontend">
+    - **Framework**: Next.js 15 (App Router)
+    - **Language**: TypeScript
+    - **Styling**: Tailwind CSS
+    - **UI**: Radix UI
+    - **State**: React Context
+  </Tab>
+  
+  <Tab title="Backend">
+    - **Runtime**: Node.js / Python
+    - **Framework**: Express / FastAPI
+    - **Database**: PostgreSQL + Redis
+    - **Queue**: RabbitMQ / SQS
+    - **Storage**: S3-compatible
+  </Tab>
+  
+  <Tab title="Infrastructure">
+    - **Container**: Docker
+    - **Orchestration**: Kubernetes
+    - **Cloud**: Multi-cloud (AWS, GCP, Azure)
+    - **CDN**: CloudFlare
+    - **Monitoring**: Datadog / Grafana
+  </Tab>
+  
+  <Tab title="Security">
+    - **Auth**: OAuth 2.0 / JWT
+    - **Secrets**: HashiCorp Vault
+    - **Encryption**: AES-256
+    - **TLS**: 1.3
+    - **Compliance**: SOC 2, ISO 27001
+  </Tab>
+</Tabs>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Observability Deep Dive"
+    icon="chart-mixed"
+    href="/platform/observability"
+  >
+    Learn about monitoring and tracing
+  </Card>
+  <Card
+    title="Security"
+    icon="shield"
+    href="/platform/security"
+  >
+    Explore security features
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/introduction"
+  >
+    View API documentation
+  </Card>
+  <Card
+    title="Quick Start"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Start building
+  </Card>
+</CardGroup>

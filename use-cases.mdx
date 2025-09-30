@@ -1,0 +1,537 @@
+---
+title: 'Use Cases'
+description: 'Real-world applications of Intra agent orchestration'
+icon: 'lightbulb'
+---
+
+## Overview
+
+Intra enables a wide range of multi-agent applications across industries. Here are some common use cases and implementation patterns.
+
+## Multi-Agent Research & Development
+
+Coordinate research agents, code generation agents, and testing agents to automate software development workflows.
+
+### Workflow Example
+
+<Steps>
+  <Step title="Research Phase">
+    Research agent gathers information about the problem domain
+  </Step>
+  <Step title="Analysis Phase">
+    Analysis agent processes data and identifies patterns
+  </Step>
+  <Step title="Generation Phase">
+    Code generation agent creates solutions
+  </Step>
+  <Step title="Validation Phase">
+    Testing agent validates the generated code
+  </Step>
+</Steps>
+
+### Implementation
+
+```python
+from intra import Workflow, Registry
+
+# Discover agents
+registry = Registry()
+researcher = registry.find("research-agent")
+analyzer = registry.find("code-analyzer")
+generator = registry.find("code-generator")
+tester = registry.find("test-agent")
+
+# Create workflow
+workflow = Workflow(name="automated-development")
+
+# Research phase
+research_task = workflow.add_task(
+    agent=researcher,
+    skill="gather_requirements",
+    input={"topic": "payment processing API"}
+)
+
+# Analysis phase
+analysis_task = workflow.add_task(
+    agent=analyzer,
+    skill="analyze_requirements",
+    input={"requirements": research_task.output},
+    depends_on=[research_task]
+)
+
+# Generation phase
+code_task = workflow.add_task(
+    agent=generator,
+    skill="generate_code",
+    input={"spec": analysis_task.output},
+    depends_on=[analysis_task]
+)
+
+# Testing phase
+test_task = workflow.add_task(
+    agent=tester,
+    skill="run_tests",
+    input={"code": code_task.output},
+    depends_on=[code_task]
+)
+
+# Execute
+result = workflow.execute()
+print(f"Generated code: {result.outputs['code']}")
+print(f"Test results: {result.outputs['tests']}")
+```
+
+## Enterprise Automation
+
+Deploy domain-specific agents for customer support, data analysis, and business intelligence.
+
+### Customer Support Automation
+
+```python
+from intra import Agent, Registry
+
+# Support agent with multiple skills
+support_agent = Agent(
+    name="customer-support",
+    capabilities=["support", "nlp"]
+)
+
+@support_agent.skill(name="handle_query")
+async def handle_query(query: str, context: dict):
+    # Classify query
+    category = classify(query)
+    
+    if category == "billing":
+        # Route to billing specialist agent
+        billing_agent = registry.find("billing-specialist")
+        return await billing_agent.execute(query)
+    
+    elif category == "technical":
+        # Route to technical support
+        tech_agent = registry.find("tech-support")
+        return await tech_agent.execute(query)
+    
+    else:
+        # Handle general queries
+        return generate_response(query, context)
+
+support_agent.register()
+```
+
+### Business Intelligence Pipeline
+
+```python
+# Multi-agent data pipeline
+workflow = Workflow(name="bi-pipeline")
+
+# Data collection
+collect = workflow.add_task(
+    agent="data-collector",
+    skill="fetch_data",
+    input={"sources": ["salesforce", "hubspot", "stripe"]}
+)
+
+# Data processing
+process = workflow.add_task(
+    agent="data-processor",
+    skill="clean_and_transform",
+    input={"raw_data": collect.output},
+    depends_on=[collect]
+)
+
+# Analysis
+analyze = workflow.add_task(
+    agent="data-analyzer",
+    skill="analyze_metrics",
+    input={"data": process.output},
+    depends_on=[process]
+)
+
+# Visualization
+visualize = workflow.add_task(
+    agent="chart-generator",
+    skill="create_dashboard",
+    input={"analysis": analyze.output},
+    depends_on=[analyze]
+)
+
+# Report generation
+report = workflow.add_task(
+    agent="report-generator",
+    skill="generate_report",
+    input={
+        "analysis": analyze.output,
+        "charts": visualize.output
+    },
+    depends_on=[analyze, visualize]
+)
+
+result = workflow.execute()
+```
+
+## E-commerce & Transactions
+
+Use AP2 to enable agents to handle purchases, subscriptions, and payments on behalf of users.
+
+### Shopping Assistant
+
+```python
+from intra import Agent, PaymentClient
+
+shopping_agent = Agent(name="shopping-assistant")
+payment = PaymentClient()
+
+@shopping_agent.skill(name="purchase_product")
+async def purchase_product(
+    product_id: str,
+    quantity: int,
+    user_id: str
+):
+    # Get product details
+    product = await get_product(product_id)
+    total = product.price * quantity
+    
+    # Create payment intent
+    intent = payment.create_intent(
+        amount=total,
+        currency="USD",
+        description=f"{quantity}x {product.name}",
+        metadata={
+            "product_id": product_id,
+            "quantity": quantity
+        }
+    )
+    
+    # Request user consent
+    consent = await payment.request_consent(
+        intent_id=intent.id,
+        user_id=user_id,
+        details={
+            "product": product.name,
+            "quantity": quantity,
+            "unit_price": product.price,
+            "total": total
+        }
+    )
+    
+    if consent.approved:
+        # Process payment
+        result = await payment.process(intent.id)
+        
+        # Fulfill order
+        order = await create_order(
+            user_id=user_id,
+            product_id=product_id,
+            quantity=quantity,
+            transaction_id=result.transaction_id
+        )
+        
+        return {
+            "status": "success",
+            "order_id": order.id,
+            "receipt_url": result.receipt_url
+        }
+    else:
+        return {
+            "status": "declined",
+            "reason": "User denied payment"
+        }
+```
+
+### Subscription Management
+
+```python
+@shopping_agent.skill(name="manage_subscription")
+async def manage_subscription(
+    action: str,
+    plan: str,
+    user_id: str
+):
+    if action == "upgrade":
+        current_plan = await get_current_plan(user_id)
+        new_plan = await get_plan(plan)
+        
+        # Calculate prorated amount
+        prorated = calculate_proration(current_plan, new_plan)
+        
+        # Request consent for upgrade
+        consent = await payment.request_consent(
+            user_id=user_id,
+            amount=prorated,
+            description=f"Upgrade to {plan}",
+            recurring={
+                "frequency": "monthly",
+                "amount": new_plan.price
+            }
+        )
+        
+        if consent.approved:
+            result = await payment.process_subscription(
+                consent.id,
+                plan=plan
+            )
+            return {"status": "upgraded", "plan": plan}
+    
+    elif action == "cancel":
+        # No payment needed
+        await cancel_subscription(user_id)
+        return {"status": "cancelled"}
+```
+
+## Agent Marketplaces
+
+Build agent marketplaces where developers can publish agents and users can discover and deploy them.
+
+### Marketplace Platform
+
+```python
+from intra import MarketplaceClient
+
+marketplace = MarketplaceClient()
+
+# List agents
+class AgentMarketplace:
+    async def list_agents(self, filters: dict):
+        """List available agents in marketplace"""
+        agents = await marketplace.search(
+            category=filters.get("category"),
+            pricing=filters.get("pricing"),
+            rating_min=filters.get("min_rating", 4.0),
+            verified=True
+        )
+        return agents
+    
+    async def purchase_agent_access(
+        self,
+        agent_id: str,
+        user_id: str,
+        plan: str
+    ):
+        """Purchase access to an agent"""
+        agent = await marketplace.get_agent(agent_id)
+        pricing = agent.pricing[plan]
+        
+        # Request payment consent
+        consent = await payment.request_consent(
+            user_id=user_id,
+            amount=pricing.price,
+            description=f"{agent.name} - {plan} plan",
+            recurring=pricing.recurring
+        )
+        
+        if consent.approved:
+            # Process payment
+            await payment.process(consent.id)
+            
+            # Grant access
+            access = await marketplace.grant_access(
+                user_id=user_id,
+                agent_id=agent_id,
+                plan=plan
+            )
+            
+            return access
+    
+    async def deploy_agent(
+        self,
+        agent_id: str,
+        user_id: str,
+        config: dict
+    ):
+        """Deploy agent instance for user"""
+        deployment = await marketplace.deploy(
+            agent_id=agent_id,
+            user_id=user_id,
+            config=config,
+            billing={
+                "model": "pay_as_you_go",
+                "cost_limits": {
+                    "daily_max": 10.00,
+                    "monthly_max": 200.00
+                }
+            }
+        )
+        
+        return deployment
+```
+
+## Content Generation Pipeline
+
+Automate content creation with specialized agents for research, writing, and editing.
+
+```python
+# Content pipeline
+content_workflow = Workflow(name="content-generation")
+
+# Research
+research = content_workflow.add_task(
+    agent="research-agent",
+    skill="gather_information",
+    input={
+        "topic": "AI trends 2025",
+        "sources": ["arxiv", "tech_blogs", "news"]
+    }
+)
+
+# Outline
+outline = content_workflow.add_task(
+    agent="content-planner",
+    skill="create_outline",
+    input={"research": research.output},
+    depends_on=[research]
+)
+
+# Writing
+draft = content_workflow.add_task(
+    agent="content-writer",
+    skill="write_article",
+    input={
+        "outline": outline.output,
+        "tone": "professional",
+        "length": 2000
+    },
+    depends_on=[outline]
+)
+
+# SEO optimization
+seo = content_workflow.add_task(
+    agent="seo-optimizer",
+    skill="optimize_seo",
+    input={"content": draft.output},
+    depends_on=[draft]
+)
+
+# Editing
+final = content_workflow.add_task(
+    agent="editor-agent",
+    skill="edit_and_polish",
+    input={"draft": seo.output},
+    depends_on=[seo]
+)
+
+result = content_workflow.execute()
+```
+
+## Data Processing & Analysis
+
+Orchestrate data pipelines with specialized processing agents.
+
+```python
+# ETL Pipeline
+data_pipeline = Workflow(name="etl-pipeline")
+
+# Extract
+extract = data_pipeline.add_task(
+    agent="data-extractor",
+    skill="extract",
+    input={
+        "sources": [
+            {"type": "api", "url": "https://api.example.com/data"},
+            {"type": "database", "connection": "postgresql://..."},
+            {"type": "file", "path": "s3://bucket/data.csv"}
+        ]
+    }
+)
+
+# Transform
+transform = data_pipeline.add_task(
+    agent="data-transformer",
+    skill="transform",
+    input={
+        "data": extract.output,
+        "transformations": [
+            "clean_nulls",
+            "normalize_dates",
+            "deduplicate"
+        ]
+    },
+    depends_on=[extract]
+)
+
+# Analyze
+analyze = data_pipeline.add_task(
+    agent="data-analyzer",
+    skill="analyze",
+    input={"data": transform.output},
+    depends_on=[transform]
+)
+
+# Load
+load = data_pipeline.add_task(
+    agent="data-loader",
+    skill="load",
+    input={
+        "data": transform.output,
+        "destination": "warehouse",
+        "table": "processed_data"
+    },
+    depends_on=[transform, analyze]
+)
+
+result = data_pipeline.execute()
+```
+
+## Benefits by Use Case
+
+<CardGroup cols={2}>
+  <Card title="Research & Development" icon="flask">
+    - Faster iteration cycles
+    - Automated testing
+    - Better code quality
+    - Reduced manual work
+  </Card>
+  
+  <Card title="Enterprise Automation" icon="building">
+    - 24/7 availability
+    - Consistent responses
+    - Cost reduction
+    - Scalable support
+  </Card>
+  
+  <Card title="E-commerce" icon="cart-shopping">
+    - Automated transactions
+    - Better UX
+    - Fraud prevention
+    - Compliance built-in
+  </Card>
+  
+  <Card title="Marketplaces" icon="store">
+    - Easy discovery
+    - Automated billing
+    - Usage tracking
+    - Trust & verification
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick Start"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Build your first workflow
+  </Card>
+  <Card
+    title="Platform Features"
+    icon="grid"
+    href="/platform/features"
+  >
+    Explore capabilities
+  </Card>
+  <Card
+    title="Pricing"
+    icon="tag"
+    href="/pricing"
+  >
+    View pricing tiers
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/introduction"
+  >
+    API documentation
+  </Card>
+</CardGroup>

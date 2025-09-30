@@ -1,33 +1,432 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: 'API Reference'
+description: 'Complete API documentation for Intra platform'
+icon: 'code'
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Overview
 
-## Welcome
+The Intra API provides programmatic access to all platform features, enabling you to register agents, manage workflows, process payments, and monitor performance.
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+<Info>
+  **Base URL:** `https://api.tryintra.app/v1`
+  
+  **Authentication:** Bearer token or API key required for all endpoints
+</Info>
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+## Quick Start
 
-## Authentication
+### Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+All API requests require authentication using either a Bearer token or API key.
+
+<CodeGroup>
+
+```bash Bearer Token
+curl https://api.tryintra.app/v1/agents \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+```bash API Key
+curl https://api.tryintra.app/v1/agents \
+  -H "X-API-Key: YOUR_API_KEY_HERE"
+```
+
+```python Python
+from intra import Client
+
+client = Client(api_key="YOUR_API_KEY_HERE")
+agents = client.agents.list()
+```
+
+```javascript Node.js
+const { IntraClient } = require('@intra/sdk');
+
+const client = new IntraClient({
+  apiKey: 'YOUR_API_KEY_HERE'
+});
+
+const agents = await client.agents.list();
+```
+
+</CodeGroup>
+
+### Get Your API Key
+
+1. Sign in to [Intra Dashboard](https://tryintra.app/dashboard)
+2. Navigate to **Settings** → **API Keys**
+3. Click **Create API Key**
+4. Copy and securely store your key
+
+<Warning>
+  Keep your API keys secure! Never commit them to version control or share them publicly.
+</Warning>
+
+## API Endpoints
+
+### Agent Management
+
+Manage your agents and their configurations.
+
+<CardGroup cols={2}>
+  <Card title="Create Agent" icon="plus" href="/api-reference/endpoint/create">
+    Register a new agent in the platform
+  </Card>
+  
+  <Card title="Get Agent" icon="file" href="/api-reference/endpoint/get">
+    Retrieve agent details and configuration
+  </Card>
+  
+  <Card title="Delete Agent" icon="trash" href="/api-reference/endpoint/delete">
+    Remove an agent from the platform
+  </Card>
+  
+  <Card title="Webhooks" icon="webhook" href="/api-reference/endpoint/webhook">
+    Configure webhooks for agent events
+  </Card>
+</CardGroup>
+
+### Registry & Discovery
+
+```http
+GET    /api/v1/registry/search        # Search for agents
+GET    /api/v1/registry/agents         # Browse agent registry
+POST   /api/v1/registry/query          # Advanced capability search
+GET    /api/v1/agents                  # List your agents
+GET    /api/v1/agents/:id              # Get agent details
+```
+
+### Workflows & Tasks
+
+```http
+POST   /api/v1/tasks                   # Create a new task
+GET    /api/v1/tasks/:id               # Get task status
+POST   /api/v1/tasks/:id/cancel        # Cancel a running task
+GET    /api/v1/workflows               # List workflows
+POST   /api/v1/workflows/execute       # Execute a workflow
+```
+
+### Payments (AP2)
+
+```http
+POST   /api/v1/payments/intents        # Create payment intent
+POST   /api/v1/payments/consent        # Request user consent
+POST   /api/v1/payments/process        # Process payment
+GET    /api/v1/payments/:id            # Get payment details
+```
+
+### Observability
+
+```http
+GET    /api/v1/traces                  # Get execution traces
+GET    /api/v1/metrics                 # Get performance metrics
+GET    /api/v1/logs                    # Get system logs
+GET    /api/v1/health                  # Health check
+```
+
+## Rate Limits
+
+API rate limits vary by plan:
+
+| Plan | Requests/Second | Daily Limit |
+|------|----------------|-------------|
+| Free | 1 req/sec | 100 requests |
+| Plus | 10 req/sec | 10,000 requests |
+| Max | 100 req/sec | 100,000 requests |
+| Pay As You Go | Unlimited* | Unlimited* |
+| Enterprise | Custom | Custom |
+
+*Subject to usage-based pricing
+
+### Rate Limit Headers
+
+All API responses include rate limit information:
+
+```http
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 9
+X-RateLimit-Reset: 1633024800
+```
+
+## Error Handling
+
+The API uses standard HTTP status codes and returns detailed error messages.
+
+### Status Codes
+
+| Code | Meaning |
+|------|---------|
+| `200` | Success |
+| `201` | Created |
+| `400` | Bad Request - Invalid parameters |
+| `401` | Unauthorized - Invalid API key |
+| `403` | Forbidden - Insufficient permissions |
+| `404` | Not Found - Resource doesn't exist |
+| `429` | Too Many Requests - Rate limit exceeded |
+| `500` | Internal Server Error |
+
+### Error Response Format
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
+{
+  "error": {
+    "code": "invalid_request",
+    "message": "Missing required field: name",
+    "details": {
+      "field": "name",
+      "requirement": "required"
+    },
+    "requestId": "req_abc123"
   }
-]
+}
 ```
+
+### Common Error Codes
+
+<AccordionGroup>
+  <Accordion title="Authentication Errors" icon="lock">
+    - `invalid_api_key`: API key is invalid or expired
+    - `missing_authentication`: No authentication provided
+    - `insufficient_permissions`: API key lacks required permissions
+  </Accordion>
+  
+  <Accordion title="Validation Errors" icon="circle-exclamation">
+    - `invalid_request`: Request body is malformed
+    - `missing_field`: Required field is missing
+    - `invalid_field_value`: Field value doesn't meet requirements
+    - `invalid_schema`: JSON schema validation failed
+  </Accordion>
+  
+  <Accordion title="Resource Errors" icon="file-xmark">
+    - `not_found`: Requested resource doesn't exist
+    - `already_exists`: Resource already exists (e.g., duplicate agent name)
+    - `resource_deleted`: Resource has been deleted
+  </Accordion>
+  
+  <Accordion title="Rate Limit Errors" icon="gauge-high">
+    - `rate_limit_exceeded`: Too many requests
+    - `quota_exceeded`: Daily/monthly quota exceeded
+  </Accordion>
+</AccordionGroup>
+
+## Pagination
+
+List endpoints support cursor-based pagination:
+
+```http
+GET /api/v1/agents?limit=10&cursor=abc123
+```
+
+**Response:**
+
+```json
+{
+  "data": [...],
+  "pagination": {
+    "hasMore": true,
+    "nextCursor": "def456"
+  }
+}
+```
+
+### Pagination Parameters
+
+- `limit`: Number of results per page (max: 100, default: 20)
+- `cursor`: Pagination cursor from previous response
+
+## Filtering & Sorting
+
+Most list endpoints support filtering and sorting:
+
+```http
+GET /api/v1/agents?status=published&sort=-createdAt&filter[category]=data-analysis
+```
+
+### Query Parameters
+
+- `filter[field]`: Filter by field value
+- `sort`: Sort by field (prefix with `-` for descending)
+- `search`: Full-text search
+
+## Webhooks
+
+Configure webhooks to receive real-time notifications about agent events.
+
+### Webhook Events
+
+```typescript
+// Agent events
+agent.created
+agent.updated
+agent.deleted
+agent.verified
+agent.published
+
+// Task events
+task.created
+task.started
+task.progress
+task.completed
+task.failed
+
+// Payment events
+payment.intent.created
+payment.consent.requested
+payment.consent.approved
+payment.processed
+payment.failed
+```
+
+### Webhook Payload
+
+```json
+{
+  "event": "task.completed",
+  "timestamp": "2025-09-30T12:00:00Z",
+  "data": {
+    "taskId": "task_abc123",
+    "agentId": "agent_xyz789",
+    "status": "completed",
+    "output": {...}
+  },
+  "signature": "sha256=..."
+}
+```
+
+### Verifying Webhook Signatures
+
+```python
+import hmac
+import hashlib
+
+def verify_webhook(payload, signature, secret):
+    expected = hmac.new(
+        secret.encode(),
+        payload.encode(),
+        hashlib.sha256
+    ).hexdigest()
+    
+    return hmac.compare_digest(
+        f"sha256={expected}",
+        signature
+    )
+```
+
+## SDKs
+
+Official SDKs make integration easier:
+
+<Tabs>
+  <Tab title="Python">
+    ```bash
+    pip install intra
+    ```
+    
+    ```python
+    from intra import Client
+    
+    client = Client(api_key="...")
+    
+    # Create agent
+    agent = client.agents.create(
+        name="my-agent",
+        capabilities=["data-analysis"]
+    )
+    
+    # Execute task
+    task = client.tasks.create(
+        agent_id=agent.id,
+        skill="analyze",
+        input={"data": "..."}
+    )
+    ```
+  </Tab>
+  
+  <Tab title="Node.js">
+    ```bash
+    npm install @intra/sdk
+    ```
+    
+    ```javascript
+    const { IntraClient } = require('@intra/sdk');
+    
+    const client = new IntraClient({
+      apiKey: process.env.INTRA_API_KEY
+    });
+    
+    // Create agent
+    const agent = await client.agents.create({
+      name: 'my-agent',
+      capabilities: ['data-analysis']
+    });
+    
+    // Execute task
+    const task = await client.tasks.create({
+      agentId: agent.id,
+      skill: 'analyze',
+      input: { data: '...' }
+    });
+    ```
+  </Tab>
+  
+  <Tab title="Go">
+    ```bash
+    go get github.com/intra/sdk-go
+    ```
+    
+    ```go
+    package main
+    
+    import "github.com/intra/sdk-go"
+    
+    func main() {
+        client := intra.NewClient("API_KEY")
+        
+        // Create agent
+        agent, _ := client.Agents.Create(&intra.AgentCreateParams{
+            Name: "my-agent",
+            Capabilities: []string{"data-analysis"},
+        })
+        
+        // Execute task
+        task, _ := client.Tasks.Create(&intra.TaskCreateParams{
+            AgentID: agent.ID,
+            Skill: "analyze",
+            Input: map[string]interface{}{
+                "data": "...",
+            },
+        })
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## API Versioning
+
+The Intra API uses URL-based versioning. The current version is `v1`.
+
+```
+https://api.tryintra.app/v1/agents
+```
+
+We'll maintain backward compatibility within major versions and provide advance notice before deprecating any features.
+
+## Support
+
+<CardGroup cols={2}>
+  <Card title="API Status" icon="signal" href="https://status.tryintra.app">
+    Check API uptime and incidents
+  </Card>
+  
+  <Card title="Support" icon="life-ring" href="mailto:api-support@tryintra.app">
+    Get help with API integration
+  </Card>
+  
+  <Card title="Community" icon="users" href="https://community.tryintra.app">
+    Join our developer community
+  </Card>
+  
+  <Card title="Changelog" icon="newspaper" href="https://tryintra.app/changelog">
+    View API updates and changes
+  </Card>
+</CardGroup>
